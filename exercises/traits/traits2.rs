@@ -18,6 +18,14 @@ trait AppendBar {
 
 //TODO: Add your code here
 
+impl AppendBar for Vec<String> {
+    fn append_bar(self) -> Self {
+        let mut new_vec = self;
+        new_vec.push("Bar".into());
+        new_vec
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
