@@ -37,6 +37,11 @@ impl Default for Person {
 
 impl From<&str> for Person {
     fn from(s: &str) -> Person {
+        s.split_once(',')
+            .filter(|(name ,age)|!name.is_empty() && !age.is_empty())
+            .filter(|(name, age)| age.parse::<i32>().is_ok())
+            .map(|(name, age)| (name.to_string(), age.parse::<usize>().unwrap()))
+            .map_or(Person::default(), |(name, age)| Person { name, age })
     }
 }
 
@@ -52,6 +57,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_default() {
         // Test that the default person is 30 year old John
@@ -59,6 +65,7 @@ mod tests {
         assert_eq!(dp.name, "John");
         assert_eq!(dp.age, 30);
     }
+
     #[test]
     fn test_bad_convert() {
         // Test that John is returned when bad string is provided
@@ -66,6 +73,7 @@ mod tests {
         assert_eq!(p.name, "John");
         assert_eq!(p.age, 30);
     }
+
     #[test]
     fn test_good_convert() {
         // Test that "Mark,20" works
@@ -73,6 +81,7 @@ mod tests {
         assert_eq!(p.name, "Mark");
         assert_eq!(p.age, 20);
     }
+
     #[test]
     fn test_bad_age() {
         // Test that "Mark,twenty" will return the default person due to an error in parsing age

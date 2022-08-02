@@ -1,3 +1,4 @@
+use std::f32::consts::E;
 // from_str.rs
 // This is similar to from_into.rs, but this time we'll implement `FromStr`
 // and return errors instead of falling back to a default value.
@@ -41,6 +42,19 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        let s = Some(s)
+            .filter(|s| !s.is_empty())
+            .ok_or(ParsePersonError::Empty)?;
+        let vec = Some(s)
+            .map(|res| res.split(',').collect::<Vec<&str>>())
+            .filter(|vec| vec.len() == 2)
+            .ok_or(ParsePersonError::BadLen)?;
+        Some(vec)
+            .map(|vec| (vec[0], vec[1]))
+            .filter(|(name, age)| !name.is_empty())
+            .ok_or(ParsePersonError::NoName)
+            .and_then(|(name, age)| age.parse::<usize>().map(|age| (name.to_string(), age)).map_err(ParsePersonError::ParseInt))
+            .map(|(name, age)| Person { name, age })
     }
 }
 
@@ -57,6 +71,7 @@ mod tests {
     fn empty_input() {
         assert_eq!("".parse::<Person>(), Err(ParsePersonError::Empty));
     }
+
     #[test]
     fn good_input() {
         let p = "John,32".parse::<Person>();
@@ -65,6 +80,7 @@ mod tests {
         assert_eq!(p.name, "John");
         assert_eq!(p.age, 32);
     }
+
     #[test]
     fn missing_age() {
         assert!(matches!(
